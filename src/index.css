@@ -1,0 +1,71 @@
+@layer base {
+    html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, img, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, u, i, center,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, embed,
+    figure, figcaption, footer, header, hgroup,
+    menu, nav, output, ruby, section, summary,
+    time, mark, audio, video {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 100%;
+        font: inherit;
+        vertical-align: baseline;
+        font-family: "DungGeunMo", sans-serif;
+    }
+    /* HTML5 display-role reset for older browsers */
+    article, aside, details, figcaption, figure,
+    footer, header, hgroup, menu, nav, section {
+        display: block;
+    }
+    body {
+        line-height: 1;
+    }
+    ol, ul {
+        list-style: none;
+    }
+    blockquote, q {
+        quotes: none;
+    }
+    blockquote:before, blockquote:after,
+    q:before, q:after {
+        content: '';
+        content: none;
+    }
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+    @font-face{
+        font-family: DungGeunMo;
+        src:url(./assets/fonts/DungGeunMo.woff) format('woff'), url(./assets/fonts/DungGeunMo.woff2) format('woff2');
+        font-weight:400;
+    }
+}
+.type_normal { background-color:#A8A878; text-shadow:1px 1px 1px #434330; box-shadow:0 2px 0 0 #434330, inset 0 2px 0 0 #D9D9C6;  }
+.type_bug { background-color:#A8B820; text-shadow:1px 1px 1px #434A0D; box-shadow:0 2px 0 0 #434A0D, inset 0 2px 0 0 #D8E09C;  }
+.type_electric { background-color:#F8D030; text-shadow:1px 1px 1px #635313; box-shadow:0 2px 0 0 #635313, inset 0 2px 0 0 #FCEAA3;  }
+.type_fighting { background-color:#C03028; text-shadow:1px 1px 1px #521916; box-shadow:0 2px 0 0 #521916, inset 0 2px 0 0 #E3A4A1;  }
+.type_ghost { background-color:#705898; text-shadow:1px 1px 1px #2D233D; box-shadow:0 2px 0 0 #2D233D, inset 0 2px 0 0 #C1B6D2;  }
+.type_psychic { background-color:#F85888; text-shadow:1px 1px 1px #632336; box-shadow:0 2px 0 0 #632336, inset 0 2px 0 0 #FCB5CA;  }
+.type_flying { background-color:#A890F0; text-shadow:1px 1px 1px #433A60; box-shadow:0 2px 0 0 #433A60, inset 0 2px 0 0 #D9CFF8;  }
+.type_steel { background-color:#B8B8D0; text-shadow:1px 1px 1px #4A4A53; box-shadow:0 2px 0 0 #4A4A53, inset 0 2px 0 0 #E0E0EA;  }
+.type_ice { background-color:#98D8D8; text-shadow:1px 1px 1px #3D5656; box-shadow:0 2px 0 0 #3D5656, inset 0 2px 0 0 #D1EEEE;  }
+.type_poison { background-color:#A040A0; text-shadow:1px 1px 1px #401A40; box-shadow:0 2px 0 0 #401A40, inset 0 2px 0 0 #D5AAD5;  }
+.type_fire { background-color:#F08030; text-shadow:1px 1px 1px #603313; box-shadow:0 2px 0 0 #603313, inset 0 2px 0 0 #F8C8A4;  }
+.type_dark { background-color:#705848; text-shadow:1px 1px 1px #2D231D; box-shadow:0 2px 0 0 #2D231D, inset 0 2px 0 0 #C1B6AF;  }
+.type_ground { background-color:#E0C068; text-shadow:1px 1px 1px #5F512C; box-shadow:0 2px 0 0 #5F512C, inset 0 2px 0 0 #F1E4BD;  }
+.type_water { background-color:#6890F0; text-shadow:1px 1px 1px #2A3A60; box-shadow:0 2px 0 0 #2A3A60, inset 0 2px 0 0 #BCCEF8;  }
+.type_fairy { background-color:#FF65D5; text-shadow:1px 1px 1px #662855; box-shadow:0 2px 0 0 #662855, inset 0 2px 0 0 #FFBBEC;  }
+.type_rock { background-color:#B8A038; text-shadow:1px 1px 1px #4A4016; box-shadow:0 2px 0 0 #4A4016, inset 0 2px 0 0 #E0D5A7;  }
+.type_grass { background-color:#78C850; text-shadow:1px 1px 1px #305120; box-shadow:0 2px 0 0 #305120, inset 0 2px 0 0 #C3E7B1;  }
+.type_dragon { background-color:#7038F8; text-shadow:1px 1px 1px #2D1663; box-shadow:0 2px 0 0 #2D1663, inset 0 2px 0 0 #C2A9FC;  }
+@tailwind base;
+@import "tailwindcss";
