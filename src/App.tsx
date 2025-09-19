@@ -1,10 +1,13 @@
+import { BrowserRouter } from "react-router-dom";
 import Main from "./component/Main.tsx";
 
 function App() {
     return (
-        <div>
-            <Main />
-        </div>
+        <BrowserRouter>
+            <div className="flex justify-center px-[150px] py-[150px]">
+                <Main />
+            </div>
+        </BrowserRouter>
     );
 }
 
