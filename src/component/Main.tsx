@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+
 import { useNavigate, useMatch, useLocation } from "react-router-dom";
 
 /*TODO ::
    1. type any 확인하고 수정
-   2. url 에 "/about/{id}" 값으로 붙어서 들어왔을 경우 모달 팝업 오픈된 상태여야함
-   3. 페이지네이션 작업
    */
+
+const firstView: number = 152;
+const skeletonCard: undefined[] = Array.from({ length: firstView });
 
 export default function Main() {
     interface Pokemons {
@@ -40,15 +42,32 @@ export default function Main() {
         weight: number;
         height: number;
     }
+
+    //페이지 진입 시 URL 받는 관련 변수
+    const [_, setUrlChecked] = useState(false);
+
+    //api 통신, 데이터 관련 변수
     const [pokemons, setPokemons] = useState<Pokemons[]>([]);
     const [thisPokemon, setThisPokemons] = useState<ThisPokemon | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(false);
+    const [viewNumber, setViewNumber] = useState({
+        add: 1,
+        view: 30,
+    });
+
+    //무한 스크롤 관련
+    const [isPageLoad, setIsPageLoad] = useState(false);
+    const [isPageEnd, setIsPageEnd] = useState(false);
+    const target = useRef<HTMLDivElement | null>(null);
+    const isObservingRef = useRef(false);
+    const MAX_ITEMS = 152;
 
     //click 시 open 되는 모달 팝업 관련 변수
     const navigate = useNavigate();
     const location = useLocation();
     const match = useMatch("/about/:id");
 
-    const newPoke = async (id: number) => {
+    const aboutPoke = async (id: number) => {
         let detailPokemon: ThisPokemon | undefined = undefined;
         try {
             const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
@@ -64,13 +83,13 @@ export default function Main() {
                 };
                 name: string;
             }
-            const koreanNameEntry = speciesData.names.find(
+            const koreanNameEntry: string = speciesData.names.find(
                 //item 객체 내부 language.name 에 ko가 있을 경우 해당 객체 반환
                 (item: KoreanNameEntry) => item.language.name === "ko",
-            );
+            ).name;
 
-            const koreanName = koreanNameEntry //해당 변수 내부에 name 이 있을 경우(한국어 명칭이 기입되어 있을 경우)
-                ? koreanNameEntry.name //한국어 출력
+            const koreanName: string = koreanNameEntry //해당 변수 내부에 name 이 있을 경우(한국어 명칭이 기입되어 있을 경우)
+                ? koreanNameEntry //한국어 출력
                 : data.name; //없으면 영어 출력
 
             //타입 관련
@@ -85,7 +104,7 @@ export default function Main() {
             for (let index = 0; index < data.types.length; index++) {
                 const typeResponse = await fetch(data.types[index].type.url);
                 const type = await typeResponse.json();
-                const koreanTypeNameEntry = type.names.find(
+                const koreanTypeNameEntry: string = type.names.find(
                     (name: TypeNameLanguage) => name.language.name === "ko",
                 ).name;
                 const koreanTypeName: string = koreanTypeNameEntry //해당 변수 내부에(한국어 명칭이 기입되어 있을 경우)
@@ -131,27 +150,27 @@ export default function Main() {
                 const abilities = await abilitiesResponse.json();
 
                 //이름
-                const koreanAbilityNameEntry = abilities.names.find(
+                const koreanAbilityNameEntry: string = abilities.names.find(
                     (name: Ability) => name.language.name === "ko",
                 ).name;
                 //한국어 없을 경우
-                const koreanAbilityName = koreanAbilityNameEntry //해당 변수 내부에(한국어 명칭이 기입되어 있을 경우)
+                const koreanAbilityName: string = koreanAbilityNameEntry //해당 변수 내부에(한국어 명칭이 기입되어 있을 경우)
                     ? koreanAbilityNameEntry //한국어 출력
                     : data.abilities[index].ability.name; //없으면 영어 출력
 
                 //텍스트 한국어
-                const koreanAbilityEntry = abilities.flavor_text_entries.find(
+                const koreanAbilityEntry: string = abilities.flavor_text_entries.find(
                     (ability: Ability) =>
                         ability.language.name === "ko" && ability.version_group.name === "x-y",
                 ).flavor_text;
 
                 //텍스트 영어
-                const englishAbilityEntry = abilities.flavor_text_entries.find(
+                const englishAbilityEntry: string = abilities.flavor_text_entries.find(
                     (ability: Ability) =>
                         ability.language.name === "en" && ability.version_group.name === "x-y",
                 ).flavor_text;
 
-                const koreanAbility = koreanAbilityEntry //해당 변수 내부에(한국어 명칭이 기입되어 있을 경우)
+                const koreanAbility: string = koreanAbilityEntry //해당 변수 내부에(한국어 명칭이 기입되어 있을 경우)
                     ? koreanAbilityEntry //한국어 출력
                     : englishAbilityEntry; //없으면 영어 출력
 
@@ -201,10 +220,10 @@ export default function Main() {
                 const firstSprite = await firstSpritesResponse.json();
 
                 //첫번째 chain 포켓몬 한국어 이름 찾기
-                const firstKoreanNameEntry = firstName.names.find(
+                const firstKoreanNameEntry: string = firstName.names.find(
                     (names: KoreanNameEntry) => names.language.name === "ko",
                 ).name;
-                const firstKoreanName = firstKoreanNameEntry //해당 변수 내부에 name 이 있을 경우(한국어 명칭이 기입되어 있을 경우)
+                const firstKoreanName: string = firstKoreanNameEntry //해당 변수 내부에 name 이 있을 경우(한국어 명칭이 기입되어 있을 경우)
                     ? firstKoreanNameEntry //한국어 출력
                     : firstName.name; //없으면 영어 출력
 
@@ -217,7 +236,7 @@ export default function Main() {
             const evolvesData = [];
             let current = allChain.chain;
             while (current) {
-                const id = current.species.url.replace(
+                const id: string = current.species.url.replace(
                     "https://pokeapi.co/api/v2/pokemon-species",
                     "",
                 );
@@ -251,11 +270,24 @@ export default function Main() {
         }
         setThisPokemons(detailPokemon);
     };
+
+    // 페이지 진입 시 URL 받기
     useEffect(() => {
-        const poke = async () => {
+        const aboutMatch = location.pathname.match(/\/about\/(\d+)/);
+        if (location.pathname.includes("/about") && aboutMatch !== null) {
+            const id = parseInt(aboutMatch[1]);
+            aboutPoke(id); // 원하는 함수 실행
+        }
+
+        setUrlChecked(true);
+    }, []);
+
+    //api 통신
+    useEffect(() => {
+        const poke = async (add: number, view: number) => {
             const newPokemons: Pokemons[] = [];
             //let index = 1; index < 152; index++ //1세대
-            for (let index = 1; index < 30; index++) {
+            for (let index = 1; index < add + view; index++) {
                 try {
                     const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${index}`);
                     const speciesResponse = await fetch(
@@ -313,61 +345,148 @@ export default function Main() {
                         },
                         spritesFront: data.sprites.front_default,
                     });
+                    if (newPokemons.length === view - 1) {
+                        setIsLoading(true);
+                    }
                 } catch (error) {
                     console.error("Error:", error);
                 }
             }
             setPokemons(newPokemons);
+            /*setIsPageLoad(false);*/
+            setIsPageLoad(true);
+            setTimeout(() => setIsPageLoad(true), 5000);
         };
-        poke();
-    }, []);
+        poke(viewNumber.add, viewNumber.view);
+    }, [viewNumber]);
+
+    //무한 스크롤
+    useEffect(() => {
+        if (!isPageLoad || !target.current) return;
+
+        const targetElement = target.current;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && !isObservingRef.current) {
+                        isObservingRef.current = true; // ref로 즉시 차단
+                        console.log("관측되었습니다.");
+
+                        setViewNumber((prevState) => {
+                            const newTotal = prevState.add + prevState.view;
+                            if (newTotal >= MAX_ITEMS) {
+                                setIsPageEnd(true);
+                                return prevState; // 변경하지 않음
+                            }
+
+                            return {
+                                ...prevState,
+                                add: Math.min(
+                                    prevState.add + prevState.view,
+                                    MAX_ITEMS - prevState.view,
+                                ),
+                            };
+                        });
+
+                        // 타이머로 플래그 해제
+                        setTimeout(() => {
+                            isObservingRef.current = false;
+                        }, 1000);
+                    }
+                });
+            },
+            {
+                root: null,
+                threshold: 0.5,
+                rootMargin: "0px",
+            },
+        );
+
+        observer.observe(targetElement);
+
+        return () => {
+            observer.unobserve(targetElement);
+        };
+    }, [isPageLoad]);
 
     return (
         <div style={{ width: "100%" }}>
             <ul className="flex flex-wrap justify-center gap-[20px]">
                 {/*<button onClick={() => openModal("123")}>Open Modal</button>*/}
-                {pokemons.map((pokemon) => (
-                    <li
-                        key={pokemon.id}
-                        className="w-[220px] mr-[4px] mb-[4px] border border-black shadow-[4px_4px_0_rgba(0,0,0,1)] rounded-lg bg-white transition duration-300 hover:translate-y-[-30px]"
-                    >
-                        <button
-                            type="button"
-                            className="w-[100%] h-[100%] block px-[15px] py-[20px] text-left cursor-pointer"
-                            onClick={() => {
-                                newPoke(pokemon.id);
-                                navigate(`/about/${pokemon.id}`, {
-                                    state: { backgroundLocation: location },
-                                });
-                            }}
-                        >
-                            <div className="flex justify-center items-center">
-                                <img src={pokemon.spritesFront} alt="" />
-                            </div>
-                            <div>
-                                <span className="block text-[#AEAEAE] text-[14px]">
-                                    No.{String(pokemon.id).padStart(5, "0")}
-                                </span>
-                                <ul className="flex gap-[4px] pt-[4px] text-[15px]">
-                                    {pokemon.types.korean.map(function (type, index) {
-                                        return (
-                                            <li
-                                                key={index}
-                                                className={`px-[12px] pt-[3px] pb-[2px] text-white rounded-[3px] type_${pokemon.types.english[index]}`}
-                                            >
-                                                {type}
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                                <p className="pt-[10px]">{pokemon.name}</p>
-                            </div>
-                        </button>
-                    </li>
-                ))}
+                {isLoading
+                    ? pokemons.map((pokemon) => (
+                          <li
+                              key={pokemon.id}
+                              className="w-[220px] mr-[4px] mb-[4px] border border-black shadow-[4px_4px_0_rgba(0,0,0,1)] rounded-lg bg-white transition duration-300 hover:translate-y-[-30px]"
+                          >
+                              <button
+                                  type="button"
+                                  className="w-[100%] h-[100%] block px-[15px] py-[20px] text-left cursor-pointer"
+                                  onClick={() => {
+                                      aboutPoke(pokemon.id);
+                                      navigate(`/about/${pokemon.id}`, {
+                                          state: { backgroundLocation: location },
+                                      });
+                                  }}
+                              >
+                                  <div className="flex justify-center items-center">
+                                      <img src={pokemon.spritesFront} alt="" />
+                                  </div>
+                                  <div>
+                                      <span className="block text-[#AEAEAE] text-[14px]">
+                                          No.{String(pokemon.id).padStart(5, "0")}
+                                      </span>
+                                      <ul className="flex gap-[4px] pt-[4px] text-[15px]">
+                                          {pokemon.types.korean.map(function (type, index) {
+                                              return (
+                                                  <li
+                                                      key={index}
+                                                      className={`px-[12px] pt-[3px] pb-[2px] text-white rounded-[3px] type_${pokemon.types.english[index]}`}
+                                                  >
+                                                      {type}
+                                                  </li>
+                                              );
+                                          })}
+                                      </ul>
+                                      <p className="pt-[10px]">{pokemon.name}</p>
+                                  </div>
+                              </button>
+                          </li>
+                      ))
+                    : skeletonCard.map(function (_, index) {
+                          return (
+                              <li
+                                  key={index}
+                                  className="w-[220px] px-[15px] py-[20px] mr-[4px] mb-[4px] border border-black shadow-[4px_4px_0_rgba(0,0,0,1)] rounded-lg bg-white transition duration-300 hover:translate-y-[-30px]"
+                              >
+                                  <div className="flex justify-center items-center">
+                                      <div className="w-[96px] h-[96px] bg-[#dedede]"></div>
+                                  </div>
+                                  <div>
+                                      <span className="h-[14px] block bg-transparent"></span>
+                                      <ul className="flex pt-[4px] text-[15px]">
+                                          <li
+                                              key={index}
+                                              className="w-[50%] h-[24px] rounded-[3px] bg-[#dedede]"
+                                          ></li>
+                                      </ul>
+                                      <p className="h-[26px] mt-[10px] bg-[#dedede]"></p>
+                                  </div>
+                              </li>
+                          );
+                      })}
             </ul>
+            <div className="pt-[50px]">
+                {isPageLoad && !isPageEnd && (
+                    <p ref={target} className="text-center">
+                        Loading...
+                    </p>
+                )}
+                {isPageEnd && <p></p>}
+            </div>
             {/* match되면 모달 렌더링 (실제 페이지 전환 아님) */}
-            {match && thisPokemon !== undefined && (
+            {match && (
                 <div
                     onClick={() => {
                         setThisPokemons(undefined);
@@ -391,91 +510,137 @@ export default function Main() {
                         <div className="flex items-center">
                             <div className="w-[50%] h-[150px] relative">
                                 <img
-                                    src={thisPokemon.spritesFront}
+                                    src={
+                                        thisPokemon !== undefined
+                                            ? thisPokemon.spritesFront
+                                            : undefined
+                                    }
                                     alt=""
                                     className="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%]"
                                 />
                             </div>
                             <div>
-                                <p className="block text-[#AEAEAE] text-[14px]">
-                                    No.{String(thisPokemon.id).padStart(5, "0")}
-                                </p>
-                                <span className="block pt-[2px] text-[#AEAEAE] text-[16px]">
-                                    {thisPokemon.genera}
+                                {thisPokemon === undefined ? (
+                                    <p className="w-[100%] h-[14px] bg-[#dedede] block"></p>
+                                ) : (
+                                    <p className="block text-[#AEAEAE] text-[14px]">
+                                        No.{String(thisPokemon?.id).padStart(5, "0")}
+                                    </p>
+                                )}
+
+                                <span
+                                    className={`${thisPokemon === undefined ? "w-[100%] h-[18px] bg-[#dedede]" : null} block mt-[2px] text-[#AEAEAE] text-[16px]`}
+                                >
+                                    {thisPokemon?.genera}
                                 </span>
                                 <ul className="flex gap-[4px] pt-[4px] text-[15px]">
-                                    {thisPokemon.types.korean.map(function (type, index) {
-                                        return (
-                                            <li
-                                                key={index}
-                                                className={`px-[12px] pt-[3px] pb-[2px] text-white rounded-[3px] type_${thisPokemon.types.english[index]}`}
-                                            >
-                                                {type}
-                                            </li>
-                                        );
-                                    })}
+                                    {thisPokemon === undefined ? (
+                                        <li
+                                            className={`w-[70px] h-[20px] px-[12px] pt-[3px] pb-[2px] text-white rounded-[3px] type_info`}
+                                        ></li>
+                                    ) : (
+                                        thisPokemon.types.korean.map(function (type, index) {
+                                            return (
+                                                <li
+                                                    key={index}
+                                                    className={`px-[12px] pt-[3px] pb-[2px] text-white rounded-[3px] type_${thisPokemon.types.english[index]}`}
+                                                >
+                                                    {type}
+                                                </li>
+                                            );
+                                        })
+                                    )}
                                 </ul>
-                                <h6 className="pt-[10px] text-[20px]">{thisPokemon.name}</h6>
+                                <h6
+                                    className={`${thisPokemon === undefined ? "w-[100%] h-[20px] bg-[#dedede]" : null} mt-[10px] text-[20px]`}
+                                >
+                                    {thisPokemon?.name}
+                                </h6>
                             </div>
                         </div>
                         <div>
-                            <p className="pt-[10px] leading-5">{thisPokemon.description}</p>
+                            <p
+                                className={`${thisPokemon === undefined ? "w-[100%] h-[40px] bg-[#dedede]" : null} mt-[10px] leading-5`}
+                            >
+                                {thisPokemon?.description}
+                            </p>
                             <ul className="flex gap-[40px] pt-[20px] text-[15px]">
                                 <li className="flex gap-[15px]">
                                     <div>
                                         <span className="type_info">키</span>
-                                        <p className="pt-[10px] text-[16px] text-center">
-                                            {thisPokemon.height / 10}M
+                                        <p
+                                            className={`${thisPokemon === undefined ? "w-[100%] h-[16px] bg-[#dedede]" : null} mt-[10px] text-[16px] text-center`}
+                                        >
+                                            {thisPokemon === undefined
+                                                ? null
+                                                : `${thisPokemon.height / 10}M`}
                                         </p>
                                     </div>
                                     <div>
                                         <span className="type_info">체중</span>
-                                        <p className="pt-[10px] text-[16px]  text-center">
-                                            {thisPokemon.weight / 10}KG
+                                        <p
+                                            className={`${thisPokemon === undefined ? "w-[100%] h-[16px] bg-[#dedede]" : null} mt-[10px] text-[16px] text-center`}
+                                        >
+                                            {thisPokemon === undefined
+                                                ? null
+                                                : `${thisPokemon.weight / 10}KG`}
                                         </p>
                                     </div>
                                 </li>
                                 <li>
                                     <span className="type_info">특성</span>
                                     <div className="pt-[10px]">
-                                        {thisPokemon.abilities.map(function (ability, index) {
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-start [&:nth-child(n+2)]:pt-[6px]"
-                                                >
-                                                    <h6 className="info_abilities">
-                                                        {ability.name}
-                                                    </h6>
-                                                    <p className="pl-[10px] text-[16px] leading-5">
-                                                        {ability.flavorText}
-                                                    </p>
-                                                </div>
-                                            );
-                                        })}
+                                        {thisPokemon === undefined ? (
+                                            <div className="flex items-start [&:nth-child(n+2)]:pt-[6px]">
+                                                <h6 className="min-w-[60px] h-[21px] info_abilities"></h6>
+                                                <p className="w-[100px] h-[21px] ml-[10px] text-[16px] leading-5 bg-[#dedede]"></p>
+                                            </div>
+                                        ) : (
+                                            thisPokemon?.abilities.map(function (ability, index) {
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-start [&:nth-child(n+2)]:pt-[6px]"
+                                                    >
+                                                        <h6 className={`info_abilities`}>
+                                                            {ability.name}
+                                                        </h6>
+                                                        <p className="pl-[10px] text-[16px] leading-5">
+                                                            {ability.flavorText}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </li>
                             </ul>
-                            <span className="type_info">진화</span>
-                            <ul className="flex justify-center gap-[10px] pt-[20px]">
-                                {thisPokemon.evolves.map(function (ability, index) {
-                                    return (
-                                        <li
-                                            key={index}
-                                            className="min-w-[120px] pb-[14px] border border-[#EBEBEB] rounded-[10px]"
-                                        >
-                                            <div className="w-[100%] h-[96px] relative">
-                                                <img
-                                                    src={ability.spritesFront}
-                                                    alt=""
-                                                    className="absolute left-1/2 translate-x-[-50%]"
-                                                />
-                                            </div>
-                                            <p className="pt-[4px] text-center">{ability.name}</p>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
+                            <span className="mt-[20px] type_info">진화</span>
+                            {thisPokemon === undefined ? (
+                                <ul className="w-[100%] h-[150px] flex justify-center gap-[10px] mt-[10px] bg-[#dedede]"></ul>
+                            ) : (
+                                <ul className="flex justify-center gap-[10px] pt-[20px]">
+                                    {thisPokemon.evolves.map(function (ability, index) {
+                                        return (
+                                            <li
+                                                key={index}
+                                                className="min-w-[120px] pb-[14px] border border-[#EBEBEB] rounded-[10px]"
+                                            >
+                                                <div className="w-[100%] h-[96px] relative">
+                                                    <img
+                                                        src={ability.spritesFront}
+                                                        alt=""
+                                                        className="absolute left-1/2 translate-x-[-50%]"
+                                                    />
+                                                </div>
+                                                <p className="pt-[4px] text-center">
+                                                    {ability.name}
+                                                </p>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
                         </div>
                     </div>
                 </div>
