@@ -223,7 +223,7 @@ export default function Main() {
                 const firstKoreanNameEntry: string = firstName.names.find(
                     (names: KoreanNameEntry) => names.language.name === "ko",
                 ).name;
-                const firstKoreanName: string = firstKoreanNameEntry //해당 변수 내부에 name 이 있을 경우(한국어 명칭이 기입되어 있을 경우)
+                const firstKoreanName = firstKoreanNameEntry //해당 변수 내부에 name 이 있을 경우(한국어 명칭이 기입되어 있을 경우)
                     ? firstKoreanNameEntry //한국어 출력
                     : firstName.name; //없으면 영어 출력
 
@@ -371,7 +371,6 @@ export default function Main() {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting && !isObservingRef.current) {
                         isObservingRef.current = true; // ref로 즉시 차단
-                        console.log("관측되었습니다.");
 
                         setViewNumber((prevState) => {
                             const newTotal = prevState.add + prevState.view;
